@@ -1,0 +1,95 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/usuarios"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Modificación de Rol</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div *ngIf="usuario">
+    <ion-item>
+      <ion-label>Nombre</ion-label>
+      <ion-text>{{ usuario.username }}</ion-text>
+    </ion-item>
+    <ion-item>
+      <ion-label>Correo</ion-label>
+      <ion-text>{{ usuario.email }}</ion-text>
+    </ion-item>
+    <ion-item>
+      <ion-label>Teléfono</ion-label>
+      <ion-text>{{ usuario.telefono || 'N/A' }}</ion-text>
+    </ion-item>
+
+    <ion-item class="ion-margin-top">
+      <ion-select label="Rol" [(ngModel)]="selectedRolId" (ionChange)="onRolChange()" interface="popover">
+        <ion-select-option *ngFor="let rolOption of rolesDisponibles" [value]="rolOption.id">
+          {{ rolOption.nombre }} </ion-select-option>
+      </ion-select>
+    </ion-item>
+
+    <ion-card *ngIf="currentSelectedRolHasPermissions" class="ion-margin-top">
+      <ion-card-header>
+        <ion-card-title>Permisos de este Rol</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-item *ngIf="currentSelectedRol.can_manage_users">
+          <ion-icon slot="start" name="checkmark-circle-outline" color="success"></ion-icon>
+          <ion-label>Gestión de Usuarios (Crear/Eliminar Cuentas)</ion-label>
+        </ion-item>
+        <ion-item *ngIf="currentSelectedRol.can_configure_system">
+          <ion-icon slot="start" name="checkmark-circle-outline" color="success"></ion-icon>
+          <ion-label>Configuración de Sistema y Parámetros</ion-label>
+        </ion-item>
+
+        <ion-item *ngIf="currentSelectedRol.can_monitor_realtime">
+          <ion-icon slot="start" name="checkmark-circle-outline" color="success"></ion-icon>
+          <ion-label>Monitoreo de Calidad del Aire en Tiempo Real</ion-label>
+        </ion-item>
+        <ion-item *ngIf="currentSelectedRol.can_activate_actuators">
+          <ion-icon slot="start" name="checkmark-circle-outline" color="success"></ion-icon>
+          <ion-label>Activación de Actuadores</ion-label>
+        </ion-item>
+        <ion-item *ngIf="currentSelectedRol.can_define_protocols">
+          <ion-icon slot="start" name="checkmark-circle-outline" color="success"></ion-icon>
+          <ion-label>Definición de Protocolos de Emergencia</ion-label>
+        </ion-item>
+        <ion-item *ngIf="currentSelectedRol.can_receive_critical_alerts">
+          <ion-icon slot="start" name="checkmark-circle-outline" color="success"></ion-icon>
+          <ion-label>Recepción de Alertas Críticas</ion-label>
+        </ion-item>
+
+        <ion-item *ngIf="currentSelectedRol.can_consult_device_history">
+          <ion-icon slot="start" name="checkmark-circle-outline" color="success"></ion-icon>
+          <ion-label>Consulta de Historial de Dispositivos</ion-label>
+        </ion-item>
+        <ion-item *ngIf="currentSelectedRol.can_receive_maintenance_notifications">
+          <ion-icon slot="start" name="checkmark-circle-outline" color="success"></ion-icon>
+          <ion-label>Recepción de Notificaciones de Mantenimiento/Fallas</ion-label>
+        </ion-item>
+        <ion-item *ngIf="currentSelectedRol.can_verify_sensor_status">
+          <ion-icon slot="start" name="checkmark-circle-outline" color="success"></ion-icon>
+          <ion-label>Verificación de Estado General de Sensores</ion-label>
+        </ion-item>
+
+        <ion-item *ngIf="currentSelectedRol.can_access_historical_data">
+          <ion-icon slot="start" name="checkmark-circle-outline" color="success"></ion-icon>
+          <ion-label>Acceso a Bases de Datos Históricas</ion-label>
+        </ion-item>
+        <ion-item *ngIf="currentSelectedRol.can_generate_reports">
+          <ion-icon slot="start" name="checkmark-circle-outline" color="success"></ion-icon>
+          <ion-label>Generación de Gráficos y Reportes</ion-label>
+        </ion-item>
+
+      </ion-card-content>
+    </ion-card>
+
+    <ion-button expand="block" class="ion-margin-top" (click)="confirmarModificacion()">Confirmar</ion-button>
+    <ion-button expand="block" fill="outline" color="medium" (click)="cancelar()">Cancelar</ion-button>
+  </div>
+
+  <div *ngIf="!usuario" class="ion-text-center ion-padding">
+    <p>Cargando detalles del usuario...</p>
+  </div>
+</ion-content>

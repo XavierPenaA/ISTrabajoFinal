@@ -1,0 +1,29 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Gestión de Zonas</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <h2>Crear Nueva Zona</h2>
+  <ion-item>
+    <ion-input label="Nombre de la Zona" placeholder="Ej. Área de Producción" [(ngModel)]="nuevaZona.nombre"></ion-input>
+  </ion-item>
+  <ion-item>
+    <ion-input label="Peligro (opcional)" placeholder="Ej. Alta Temperatura" [(ngModel)]="nuevaZona.peligro"></ion-input>
+  </ion-item>
+  <ion-button expand="block" (click)="addZona()">Añadir Zona</ion-button>
+
+  <ion-list>
+    <ion-list-header>
+      <ion-label>Zonas Existentes</ion-label>
+    </ion-list-header>
+    <ion-item *ngFor="let zona of zonas">
+      <ion-label>
+        <h3>{{ zona.nombre }}</h3>
+        <p *ngIf="zona.peligro">Peligro: {{ zona.peligro }}</p>
+      </ion-label>
+      <ion-button slot="end" color="danger" (click)="deleteZona(zona.id)">Eliminar</ion-button>
+      </ion-item>
+  </ion-list>
+</ion-content>

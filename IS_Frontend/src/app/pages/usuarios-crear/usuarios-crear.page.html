@@ -1,0 +1,40 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/usuarios"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Crear Nuevo Usuario</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <h2>Registrar Nuevo Usuario</h2>
+
+  <form (ngSubmit)="createUsuario()">
+    <ion-item>
+      <ion-input label="Nombre de Usuario" placeholder="ej. juan_perez" [(ngModel)]="nuevoUsuario.username" name="username" required></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-input label="Email" type="email" placeholder="ej. correo@ejemplo.com" [(ngModel)]="nuevoUsuario.email" name="email" required></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-input label="Contraseña" type="password" placeholder="********" [(ngModel)]="nuevoUsuario.password" name="password" required></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-input label="Teléfono (opcional)" placeholder="ej. +593987654321" [(ngModel)]="nuevoUsuario.telefono" name="telefono"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-select label="Rol" [(ngModel)]="nuevoUsuario.rol_id" name="rol_id" required>
+        <ion-select-option *ngFor="let rolOption of rolesDisponibles" [value]="rolOption.id">
+          {{ rolOption.nombre }}
+        </ion-select-option>
+      </ion-select>
+    </ion-item>
+
+    <ion-button expand="block" type="submit" class="ion-margin-top">Crear Usuario</ion-button>
+  </form>
+</ion-content>
