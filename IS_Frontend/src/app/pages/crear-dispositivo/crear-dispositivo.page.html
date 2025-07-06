@@ -1,0 +1,152 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Registrar Dispositivo IoT</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Nuevo Dispositivo IoT</ion-card-title>
+      <ion-card-subtitle>Define el dispositivo principal y sus componentes</ion-card-subtitle>
+    </ion-card-header>
+
+    <ion-card-content>
+      <form (ngSubmit)="crearDispositivo()" #dispositivoForm="ngForm">
+
+        <ion-list-header>
+          <ion-label color="primary">Datos del Dispositivo Principal</ion-label>
+        </ion-list-header>
+
+        <ion-item class="ion-margin-top">
+          <ion-select label="Zona" labelPlacement="floating" [(ngModel)]="dispositivo.zona" name="zona" required>
+            <ion-select-option *ngFor="let zona of zonas" [value]="zona.id">
+              {{ zona.nombre }}
+            </ion-select-option>
+          </ion-select>
+        </ion-item>
+        <ion-note color="danger" *ngIf="dispositivoForm.submitted && !dispositivo.zona">
+          La zona es obligatoria.
+        </ion-note>
+
+        <ion-item class="ion-margin-top">
+          <ion-input label="Tipo de Dispositivo" labelPlacement="floating" [(ngModel)]="dispositivo.tipo" name="tipoDispositivo" required></ion-input>
+        </ion-item>
+        <ion-note color="danger" *ngIf="dispositivoForm.submitted && !dispositivo.tipo">
+          El tipo de dispositivo es obligatorio.
+        </ion-note>
+
+        <ion-item class="ion-margin-top">
+          <ion-input label="Latitud" labelPlacement="floating" type="number" [(ngModel)]="dispositivo.latitud" name="latitud" required step="0.000001"></ion-input>
+        </ion-item>
+        <ion-note color="danger" *ngIf="dispositivoForm.submitted && (dispositivo.latitud === null || isNaN(dispositivo.latitud))">
+          La latitud es obligatoria y debe ser un número.
+        </ion-note>
+
+        <ion-item class="ion-margin-top">
+          <ion-input label="Longitud" labelPlacement="floating" type="number" [(ngModel)]="dispositivo.longitud" name="longitud" required step="0.000001"></ion-input>
+        </ion-item>
+        <ion-note color="danger" *ngIf="dispositivoForm.submitted && (dispositivo.longitud === null || isNaN(dispositivo.longitud))">
+          La longitud es obligatoria y debe ser un número.
+        </ion-note>
+
+        <ion-item class="ion-margin-top">
+          <ion-toggle [(ngModel)]="dispositivo.activo" name="activo">Activo</ion-toggle>
+        </ion-item>
+
+        <ion-list-header class="ion-margin-top">
+          <ion-label color="primary">Sensores</ion-label>
+          <ion-button (click)="addSensor()" fill="outline" size="small">
+            <ion-icon name="add-circle-outline" slot="start"></ion-icon> Añadir Sensor
+          </ion-button>
+        </ion-list-header>
+
+        <div *ngFor="let sensor of sensores; let i = index">
+          <ion-card class="ion-margin-bottom">
+            <ion-card-header>
+              <ion-card-title>Sensor #{{ i + 1 }}</ion-card-title>
+              <ion-button *ngIf="sensores.length > 1" (click)="removeSensor(i)" color="danger" size="small" fill="clear" class="ion-float-right">
+                <ion-icon name="remove-circle-outline"></ion-icon>
+              </ion-button>
+            </ion-card-header>
+            <ion-card-content>
+              <ion-item>
+                <ion-select label="Tipo de Medición" labelPlacement="floating" [(ngModel)]="sensor.tipo_medicion" name="tipoMedicion{{i}}" required>
+                  <ion-select-option *ngFor="let tipo of tiposMedicion" [value]="tipo">
+                    {{ tipo }}
+                  </ion-select-option>
+                </ion-select>
+              </ion-item>
+              <ion-note color="danger" *ngIf="dispositivoForm.submitted && !sensor.tipo_medicion">
+                El tipo de medición es obligatorio para el Sensor #{{ i + 1 }}.
+              </ion-note>
+
+              <ion-item class="ion-margin-top">
+                <ion-input label="Unidad" labelPlacement="floating" [(ngModel)]="sensor.unidad" name="unidad{{i}}" required></ion-input>
+              </ion-item>
+              <ion-note color="danger" *ngIf="dispositivoForm.submitted && !sensor.unidad">
+                La unidad es obligatoria para el Sensor #{{ i + 1 }}.
+              </ion-note>
+
+              <ion-item class="ion-margin-top">
+                <ion-input label="Umbral Mínimo" labelPlacement="floating" type="number" [(ngModel)]="sensor.umbral_min" name="umbralMin{{i}}" required step="0.01"></ion-input>
+              </ion-item>
+              <ion-note color="danger" *ngIf="dispositivoForm.submitted && (sensor.umbral_min === null || isNaN(sensor.umbral_min))">
+                El umbral mínimo es obligatorio y debe ser un número para el Sensor #{{ i + 1 }}.
+              </ion-note>
+
+              <ion-item class="ion-margin-top">
+                <ion-input label="Umbral Máximo" labelPlacement="floating" type="number" [(ngModel)]="sensor.umbral_max" name="umbralMax{{i}}" required step="0.01"></ion-input>
+              </ion-item>
+              <ion-note color="danger" *ngIf="dispositivoForm.submitted && (sensor.umbral_max === null || isNaN(sensor.umbral_max))">
+                El umbral máximo es obligatorio y debe ser un número para el Sensor #{{ i + 1 }}.
+              </ion-note>
+
+              <ion-item class="ion-margin-top">
+                <ion-toggle [(ngModel)]="sensor.activo" name="sensorActivo{{i}}">Activo</ion-toggle>
+              </ion-item>
+            </ion-card-content>
+          </ion-card>
+        </div>
+
+        <ion-list-header class="ion-margin-top">
+          <ion-label color="primary">Activadores</ion-label>
+          <ion-button (click)="addActivador()" fill="outline" size="small">
+            <ion-icon name="add-circle-outline" slot="start"></ion-icon> Añadir Activador
+          </ion-button>
+        </ion-list-header>
+
+        <div *ngFor="let activador of activadores; let i = index">
+          <ion-card class="ion-margin-bottom">
+            <ion-card-header>
+              <ion-card-title>Activador #{{ i + 1 }}</ion-card-title>
+              <ion-button *ngIf="activadores.length > 1" (click)="removeActivador(i)" color="danger" size="small" fill="clear" class="ion-float-right">
+                <ion-icon name="remove-circle-outline"></ion-icon>
+              </ion-button>
+            </ion-card-header>
+            <ion-card-content>
+              <ion-item>
+                <ion-input label="Tipo de Activador" labelPlacement="floating" [(ngModel)]="activador.tipo" name="tipoActivador{{i}}" required></ion-input>
+              </ion-item>
+              <ion-note color="danger" *ngIf="dispositivoForm.submitted && !activador.tipo">
+                El tipo de activador es obligatorio para el Activador #{{ i + 1 }}.
+              </ion-note>
+
+              <ion-item class="ion-margin-top">
+                <ion-input label="Acción" labelPlacement="floating" [(ngModel)]="activador.accion" name="accionActivador{{i}}" required></ion-input>
+              </ion-item>
+              <ion-note color="danger" *ngIf="dispositivoForm.submitted && !activador.accion">
+                La acción es obligatoria para el Activador #{{ i + 1 }}.
+              </ion-note>
+            </ion-card-content>
+          </ion-card>
+        </div>
+
+        <ion-button expand="block" type="submit" class="ion-margin-top">Registrar Dispositivo IoT Completo</ion-button>
+      </form>
+    </ion-card-content>
+  </ion-card>
+</ion-content>

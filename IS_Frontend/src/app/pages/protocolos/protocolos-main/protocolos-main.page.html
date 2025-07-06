@@ -1,0 +1,122 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Creación de Protocolo</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Define la nueva protocolo de emergencia.</ion-card-title>
+    </ion-card-header>
+  </ion-card>
+
+  <ion-card>
+    <ion-item button detail="true" (click)="goToSelectZone()">
+      <ion-label>Zona</ion-label>
+      <ion-text *ngIf="selectedZone; else noZoneSelected" slot="end">
+        {{ selectedZone.nombre }} (ID: {{ selectedZone.id }})
+      </ion-text>
+      <ng-template #noZoneSelected>
+        <ion-text color="medium" slot="end">
+          Seleccionar la Zona
+        </ion-text>
+      </ng-template>
+    </ion-item>
+
+    <ion-card-content *ngIf="selectedZone">
+      <ion-text color="medium">
+        <p>ID: {{ selectedZone.id }}</p>
+        <p>Nombre: {{ selectedZone.nombre }}</p>
+        <p>Peligro: {{ selectedZone.peligro }}</p>
+      </ion-text>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-item button detail="true" (click)="goToSelectDevices()" [disabled]="!selectedZone">
+      <ion-label>Dispositivos IoT</ion-label>
+      <ion-text *ngIf="selectedDevices.length > 0; else noDevicesSelected" slot="end">
+        {{ selectedDevices.length }} dispositivo<span *ngIf="selectedDevices.length !== 1">s</span> seleccionado<span *ngIf="selectedDevices.length !== 1">s</span>
+      </ion-text>
+      <ng-template #noDevicesSelected>
+        <ion-text color="medium" slot="end">
+          Seleccionar Dispositivos
+        </ion-text>
+      </ng-template>
+    </ion-item>
+
+    <ion-card-content *ngIf="selectedDevices.length > 0">
+      <ion-list>
+        <ion-item *ngFor="let device of selectedDevices">
+          <ion-label>
+            <h3>Tipo: {{ device.tipo }} (ID: {{ device.id }})</h3>
+            <p>Zona ID: {{ device.zona }}</p>
+            <p>Latitud: {{ device.latitud }}, Longitud: {{ device.longitud }}</p>
+          </ion-label>
+        </ion-item>
+      </ion-list>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-item button detail="true" (click)="goToSelectSensors()" [disabled]="selectedDevices.length === 0">
+      <ion-label>Sensores</ion-label>
+      <ion-text *ngIf="selectedSensors.length > 0; else noSensorsSelected" slot="end">
+        {{ selectedSensors.length }} sensor<span *ngIf="selectedSensors.length !== 1">es</span> seleccionado<span *ngIf="selectedSensors.length !== 1">s</span>
+      </ion-text>
+      <ng-template #noSensorsSelected>
+        <ion-text color="medium" slot="end">
+          Seleccionar Sensores
+        </ion-text>
+      </ng-template>
+    </ion-item>
+
+    <ion-card-content *ngIf="selectedSensors.length > 0">
+      <ion-list>
+        <ion-item *ngFor="let sensor of selectedSensors">
+          <ion-label>
+            <h3>Tipo: {{ sensor.tipo_medicion }} (ID: {{ sensor.id }})</h3>
+            <p>Dispositivo ID: {{ sensor.dispositivo }}</p>
+            <p>Unidad: {{ sensor.unidad }}</p>
+            <p>Umbral: {{ sensor.umbral_min }} - {{ sensor.umbral_max }}</p>
+          </ion-label>
+        </ion-item>
+      </ion-list>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-item button detail="true" (click)="goToSelectActivators()" [disabled]="selectedDevices.length === 0">
+      <ion-label>Activadores</ion-label>
+      <ion-text *ngIf="selectedActivators.length > 0; else noActivatorsSelected" slot="end">
+        {{ selectedActivators.length }} activador<span *ngIf="selectedActivators.length !== 1">es</span> seleccionado<span *ngIf="selectedActivators.length !== 1">s</span>
+      </ion-text>
+      <ng-template #noActivatorsSelected>
+        <ion-text color="medium" slot="end">
+          Seleccionar Activadores
+        </ion-text>
+      </ng-template>
+    </ion-item>
+
+    <ion-card-content *ngIf="selectedActivators.length > 0">
+      <ion-list>
+        <ion-item *ngFor="let activator of selectedActivators">
+          <ion-label>
+            <h3>Tipo: {{ activator.tipo }} (ID: {{ activator.id }})</h3>
+            <p>Dispositivo ID: {{ activator.dispositivo }}</p>
+            <p>Acción: {{ activator.accion }}</p>
+          </ion-label>
+        </ion-item>
+      </ion-list>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-button expand="block" class="ion-margin-top" (click)="createProtocol()" [disabled]="!canCreateProtocol()">
+    CREAR PROTOCOLO
+  </ion-button>
+
+</ion-content>

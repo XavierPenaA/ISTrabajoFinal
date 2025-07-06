@@ -1,0 +1,127 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Registrar Mantenimiento</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Nuevo Registro de Mantenimiento</ion-card-title>
+      <ion-card-subtitle>Aplica mantenimiento a un dispositivo, sensor o activador</ion-card-subtitle>
+    </ion-card-header>
+
+    <ion-card-content>
+      <form (ngSubmit)="crearMantenimiento()" #mantenimientoForm="ngForm">
+
+        <ion-list-header>
+          <ion-label color="primary">¿A qué se aplica el mantenimiento?</ion-label>
+        </ion-list-header>
+        <ion-radio-group [(ngModel)]="selectedTargetType" name="targetTypeSelection">
+          <ion-item>
+            <ion-radio value="dispositivo" labelPlacement="end">Dispositivo IoT</ion-radio>
+          </ion-item>
+          <ion-item>
+            <ion-radio value="sensor" labelPlacement="end">Sensor</ion-radio>
+          </ion-item>
+          <ion-item>
+            <ion-radio value="activador" labelPlacement="end">Activador</ion-radio>
+          </ion-item>
+        </ion-radio-group>
+
+        <ion-item class="ion-margin-top" *ngIf="selectedTargetType === 'dispositivo'">
+          <ion-select label="Seleccionar Dispositivo IoT" labelPlacement="floating" [(ngModel)]="mantenimiento.dispositivo_id" name="selectedDispositivo" required>
+            <ion-select-option *ngFor="let disp of dispositivos" [value]="disp.id">
+              {{ disp.tipo }} (ID: {{ disp.id }})
+            </ion-select-option>
+          </ion-select>
+        </ion-item>
+        <ion-note color="danger" *ngIf="selectedTargetType === 'dispositivo' && mantenimientoForm.submitted && !mantenimiento.dispositivo_id">
+          Seleccionar un dispositivo es obligatorio.
+        </ion-note>
+
+        <ion-item class="ion-margin-top" *ngIf="selectedTargetType === 'sensor'">
+          <ion-select label="Seleccionar Sensor" labelPlacement="floating" [(ngModel)]="mantenimiento.sensor_id" name="selectedSensor" required>
+            <ion-select-option *ngFor="let sen of sensores" [value]="sen.id">
+              {{ sen.tipo_medicion }} (ID: {{ sen.id }}) - Disp: {{ sen.tipo_medicion }}
+            </ion-select-option>
+          </ion-select>
+        </ion-item>
+        <ion-note color="danger" *ngIf="selectedTargetType === 'sensor' && mantenimientoForm.submitted && !mantenimiento.sensor_id">
+          Seleccionar un sensor es obligatorio.
+        </ion-note>
+
+        <ion-item class="ion-margin-top" *ngIf="selectedTargetType === 'activador'">
+          <ion-select label="Seleccionar Activador" labelPlacement="floating" [(ngModel)]="mantenimiento.activador_id" name="selectedActivador" required>
+            <ion-select-option *ngFor="let act of activadores" [value]="act.id">
+              {{ act.tipo }} (ID: {{ act.id }}) - Disp: {{ act.tipo }}
+            </ion-select-option>
+          </ion-select>
+        </ion-item>
+        <ion-note color="danger" *ngIf="selectedTargetType === 'activador' && mantenimientoForm.submitted && !mantenimiento.activador_id">
+          Seleccionar un activador es obligatorio.
+        </ion-note>
+
+        <ion-list-header class="ion-margin-top">
+          <ion-label color="primary">Detalles del Mantenimiento</ion-label>
+        </ion-list-header>
+
+        <ion-item>
+          <ion-datetime-button datetime="fechaMantenimientoPicker" mode="ios"></ion-datetime-button>
+          <ion-modal [keepContentsMounted]="true">
+            <ng-template>
+              <ion-datetime id="fechaMantenimientoPicker" presentation="date" [(ngModel)]="mantenimiento.fecha_mantenimiento" name="fechaMantenimiento" required></ion-datetime>
+            </ng-template>
+          </ion-modal>
+        </ion-item>
+        <ion-note color="danger" *ngIf="mantenimientoForm.submitted && !mantenimiento.fecha_mantenimiento">
+          La fecha de mantenimiento es obligatoria.
+        </ion-note>
+
+        <ion-item class="ion-margin-top">
+          <ion-select label="Tipo de Mantenimiento" labelPlacement="floating" [(ngModel)]="mantenimiento.tipo_mantenimiento" name="tipoMantenimiento" required>
+            <ion-select-option *ngFor="let tipo of tipoMantenimientoOptions" [value]="tipo">
+              {{ tipo }}
+            </ion-select-option>
+          </ion-select>
+        </ion-item>
+        <ion-note color="danger" *ngIf="mantenimientoForm.submitted && !mantenimiento.tipo_mantenimiento">
+          El tipo de mantenimiento es obligatorio.
+        </ion-note>
+
+        <ion-item class="ion-margin-top">
+          <ion-textarea label="Descripción" labelPlacement="floating" [(ngModel)]="mantenimiento.descripcion" name="descripcion" rows="3" required></ion-textarea>
+        </ion-item>
+        <ion-note color="danger" *ngIf="mantenimientoForm.submitted && !mantenimiento.descripcion">
+          La descripción es obligatoria.
+        </ion-note>
+
+        <ion-item class="ion-margin-top">
+          <ion-input label="Duración (Horas)" labelPlacement="floating" type="number" [(ngModel)]="mantenimiento.duracion_horas" name="duracionHoras" required step="0.01"></ion-input>
+        </ion-item>
+        <ion-note color="danger" *ngIf="mantenimientoForm.submitted && (mantenimiento.duracion_horas === null || isNumberNaN(mantenimiento.duracion_horas))">
+          La duración en horas es obligatoria y debe ser un número.
+        </ion-note>
+
+        <ion-item class="ion-margin-top">
+          <ion-select label="Técnico Responsable" labelPlacement="floating" [(ngModel)]="mantenimiento.tecnico_responsable_id" name="tecnicoResponsable" required>
+            <ion-select-option *ngFor="let tecnico of tecnicos" [value]="tecnico.id">
+              {{ tecnico.username }}
+            </ion-select-option>
+          </ion-select>
+        </ion-item>
+        <ion-note color="danger" *ngIf="mantenimientoForm.submitted && !mantenimiento.tecnico_responsable_id">
+          El técnico responsable es obligatorio.
+        </ion-note>
+
+        <ion-button expand="block" type="submit" class="ion-margin-top" [disabled]="isLoading">
+          <ion-spinner *ngIf="isLoading" name="crescent"></ion-spinner>
+          Registrar Mantenimiento
+        </ion-button>
+      </form>
+    </ion-card-content>
+  </ion-card>
+</ion-content>

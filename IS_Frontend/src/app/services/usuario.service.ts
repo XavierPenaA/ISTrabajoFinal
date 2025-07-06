@@ -64,4 +64,9 @@ export class UsuarioService {
   getRoles(): Observable<any[]> {
     return this.http.get<any[]>(this.rolesApiUrl);
   }
+   getTecnicos(): Observable<any[]> {
+    // Aquí usamos el filtro 'rol__nombre' que habilitamos en el backend
+    // Asegúrate de que el string 'Técnico de Mantenimiento' coincida EXACTAMENTE con el nombre de ese rol en tu base de datos.
+    return this.http.get<any[]>(`${this.apiUrl}?rol=3`);
+  }
 }

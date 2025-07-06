@@ -3,7 +3,7 @@ from .models import (
     Usuario, Zona, DispositivoIoT, Sensor, Activador, Rol,
     Medicion, Mantenimiento, ProtocoloEmergencia, LogAuditoria
 )
-
+from django.contrib.contenttypes.models import ContentType  
 # --- Nuevo Serializer para el modelo Rol ---
 # my_app/serializers.py
 from rest_framework import serializers
@@ -15,74 +15,29 @@ class RolSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class UsuarioSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, required=False)
-
-    # Este campo 'rol' es para la SALIDA (GET requests):
-    # Cuando un usuario es recuperado, Django devolverá el objeto Rol anidado.
-    # No es para la entrada.
-    rol = RolSerializer(read_only=True)
-
-    # Este es el campo que se usará para la ENTRADA (POST, PUT, PATCH):
-    # Se llama 'rol_id' aquí en el serializer para distinguirlo del campo 'rol' de salida.
-    # Utiliza PrimaryKeyRelatedField para mapear el ID de un Rol.
-    # El 'source='rol'' es CRUCIAL: le dice a DRF que este campo 'rol_id' del serializer
-    # se mapea al campo 'rol' del MODELO Usuario.
-    # 'write_only=True' asegura que solo se use para entrada.
-    # 'required=True' asegura que sea obligatorio al crear.
-    rol_id = serializers.PrimaryKeyRelatedField(
-        queryset=Rol.objects.all(), # Todos los objetos Rol válidos
-        source='rol',              # Mapea al campo 'rol' del modelo Usuario
-        write_only=True,           # Solo para escritura (POST, PUT, PATCH)
-        required=True              # ¡Es obligatorio!
-    )
+    # Definimos 'rol' como PrimaryKeyRelatedField para que acepte el ID en la escritura
+    # Usamos write_only=True para que este campo no se muestre directamente al leer,
+    # ya que vamos a construir la representación completa en to_representation.
+    rol = serializers.PrimaryKeyRelatedField(queryset=Rol.objects.all(), write_only=True, allow_null=True, required=False)
 
     class Meta:
         model = Usuario
-        # Incluye 'rol_id' para la entrada, 'rol' para la salida
-        fields = ['id', 'username', 'email', 'telefono', 'password', 'rol', 'rol_id']
-        # 'extra_kwargs' es opcional, pero puede ayudar a asegurar el 'required'
-        extra_kwargs = {
-            'password': {'write_only': True, 'required': False}, # Password puede no ser requerido en updates
-            'rol_id': {'required': True} # Asegura que rol_id es requerido para POST/PUT
-        }
+        fields = ['id', 'username', 'email', 'telefono', 'rol'] # Asegúrate que 'rol' esté en fields
+        read_only_fields = ['id'] # 'id' es de solo lectura
 
+    def to_representation(self, instance):
+        # Esta función se llama cuando se serializa el objeto para una respuesta GET/LIST
+        representation = super().to_representation(instance)
+        # Reemplazamos el ID del rol con la representación completa del objeto Rol
+        if instance.rol:
+            representation['rol'] = RolSerializer(instance.rol).data
+        else:
+            representation['rol'] = None # O un diccionario vacío si prefieres
+        return representation
 
-    # Los métodos create y update NO necesitan hacer .pop() del 'rol_id'
-    # ni buscar el objeto Rol si se usa PrimaryKeyRelatedField con source='rol'.
-    # DRF lo manejará automáticamente.
-
-    def create(self, validated_data):
-        # PrimaryKeyRelatedField con source='rol' ya ha transformado 'rol_id'
-        # en el objeto Rol y lo ha puesto en validated_data bajo la clave 'rol'.
-        # Por lo tanto, no necesitamos un .pop('rol_id') y luego buscar el objeto.
-        # validated_data ya contendrá el objeto Rol asignado a 'rol'.
-
-        password = validated_data.pop('password', None)
-        user = Usuario.objects.create(**validated_data) # 'rol' ya será el objeto Rol aquí
-
-        if password is not None:
-            user.set_password(password)
-
-        user.save()
-        return user
-
-    def update(self, instance, validated_data):
-        # Similar para update: 'rol' en validated_data ya será el objeto Rol
-        # si 'rol_id' fue enviado.
-
-        password = validated_data.pop('password', None)
-
-        instance.username = validated_data.get('username', instance.username)
-        instance.email = validated_data.get('email', instance.email)
-        instance.telefono = validated_data.get('telefono', instance.telefono)
-        # DRF automáticamente actualiza instance.rol si 'rol' está en validated_data
-        # y viene del rol_id del serializer.
-
-        if password is not None:
-            instance.set_password(password)
-
-        instance.save()
-        return instance
+    # El método create y update de ModelSerializer debería manejar el campo 'rol'
+    # como un ForeignKey que acepta un ID debido a `PrimaryKeyRelatedField`.
+    # No deberías necesitar sobrescribirlos a menos que tengas lógica muy específica.
 
 # --- Zona ---
 class ZonaSerializer(serializers.ModelSerializer):
@@ -90,44 +45,222 @@ class ZonaSerializer(serializers.ModelSerializer):
         model = Zona
         fields = '__all__'
 
-# --- DispositivoIoT ---
 class DispositivoIoTSerializer(serializers.ModelSerializer):
+    zona_info = ZonaSerializer(source='zona', read_only=True)
+
+    # --- NUEVOS SERIALIZERS ANIDADOS PARA SENSORES Y ACTIVADORES ---
+    # Estos permiten recibir y crear múltiples sensores y activadores junto con el dispositivo
+    sensores = serializers.ListField(
+        child=serializers.DictField(), # Usaremos DictField para validación manual o SensorSerializer si es más complejo
+        write_only=True, # Estos campos solo se usan para la escritura (creación/actualización), no para la lectura
+        required=False,
+        allow_empty=True # Permite que no se envíen sensores al crear/actualizar
+    )
+    activadores = serializers.ListField(
+        child=serializers.DictField(), # Usaremos DictField para validación manual o ActivadorSerializer si es más complejo
+        write_only=True,
+        required=False,
+        allow_empty=True # Permite que no se envíen activadores
+    )
+
     class Meta:
         model = DispositivoIoT
-        fields = '__all__'
+        fields = [
+            'id', 'tipo', 'zona', 'zona_info', 'latitud', 'longitud', 'activo',
+            'fecha_registro', 'ultima_actualizacion', 'sensores', 'activadores' # ¡Añade los campos anidados aquí!
+        ]
+        read_only_fields = ['fecha_registro', 'ultima_actualizacion', 'zona_info']
 
-# --- Sensor ---
+
+    # --- MÉTODO CREATE MODIFICADO PARA MANEJAR SERIALIZERS ANIDADOS ---
+    def create(self, validated_data):
+        sensores_data = validated_data.pop('sensores', [])
+        activadores_data = validated_data.pop('activadores', [])
+
+        # Crea el DispositivoIoT primero
+        dispositivo = DispositivoIoT.objects.create(**validated_data)
+
+        # Crea los Sensores asociados
+        for sensor_data in sensores_data:
+            # Aquí podrías añadir validación específica para cada campo del sensor si es necesario
+            Sensor.objects.create(dispositivo=dispositivo, **sensor_data)
+
+        # Crea los Activadores asociados
+        for activador_data in activadores_data:
+            # Aquí podrías añadir validación específica para cada campo del activador si es necesario
+            Activador.objects.create(dispositivo=dispositivo, **activador_data)
+        
+        return dispositivo
+
+    # --- MÉTODO UPDATE MODIFICADO PARA MANEJAR SERIALIZERS ANIDADOS ---
+    def update(self, instance, validated_data):
+        # Para la actualización, puedes elegir cómo manejar los sensores/activadores:
+        # 1. Eliminarlos todos y recrearlos (más simple, pero pierde IDs y puede ser ineficiente)
+        # 2. Actualizarlos/crearlos/eliminarlos individualmente (más complejo, requiere IDs y lógica de "diff")
+        # Por simplicidad para empezar, haremos la opción 1 o simplemente los ignoramos en la actualización
+        # si solo se envían al crear. Para la foto, parece que es más para la creación inicial.
+
+        sensores_data = validated_data.pop('sensores', [])
+        activadores_data = validated_data.pop('activadores', [])
+
+        # Actualiza el DispositivoIoT
+        instance.tipo = validated_data.get('tipo', instance.tipo)
+        instance.zona = validated_data.get('zona', instance.zona)
+        instance.latitud = validated_data.get('latitud', instance.latitud)
+        instance.longitud = validated_data.get('longitud', instance.longitud)
+        instance.activo = validated_data.get('activo', instance.activo)
+        instance.save()
+
+        # Si decides actualizar los sensores/activadores en un PATCH/PUT
+        # Opción A: Eliminar todos los existentes y recrear los nuevos
+        if sensores_data: # Solo si se enviaron nuevos datos de sensores
+            instance.sensores.all().delete()
+            for sensor_data in sensores_data:
+                Sensor.objects.create(dispositivo=instance, **sensor_data)
+        
+        if activadores_data: # Solo si se enviaron nuevos datos de activadores
+            instance.activadores.all().delete()
+            for activador_data in activadores_data:
+                Activador.objects.create(dispositivo=instance, **activador_data)
+
+        return instance
+
+# --- Serializers para Sensor y Activador (para uso general y posible validación individual) ---
+# Aunque usamos DictField en DispositivoIoTSerializer por flexibilidad,
+# es bueno tener estos definidos para otras vistas o validaciones más estrictas.
 class SensorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sensor
-        fields = '__all__'
+        # No incluyas 'dispositivo' aquí si lo vas a asignar en el create/update del DispositivoIoTSerializer
+        fields = ['id', 'tipo_medicion', 'unidad', 'umbral_min', 'umbral_max', 'activo']
 
-# --- Activador ---
 class ActivadorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Activador
-        fields = '__all__'
+        # No incluyas 'dispositivo' aquí si lo vas a asignar en el create/update del DispositivoIoTSerializer
+        fields = ['id', 'tipo', 'accion']
 
-# --- Medición ---
+
+# --- El resto de tus serializers ---
+
 class MedicionSerializer(serializers.ModelSerializer):
+    # Opcional: para mostrar algunos detalles del sensor en la medición
+    # sensor_details = serializers.SerializerMethodField()
+
     class Meta:
         model = Medicion
-        fields = '__all__'
+        fields = ['id', 'sensor', 'valor', 'fecha'] # 'sensor_details' si lo añades
 
-# --- Mantenimiento ---
+    # def get_sensor_details(self, obj):
+    #     if obj.sensor:
+    #         return {
+    #             'id': obj.sensor.id,
+    #             'tipo_medicion': obj.sensor.tipo_medicion,
+    #             'unidad': obj.sensor.unidad
+    #         }
+    #     return None
+
 class MantenimientoSerializer(serializers.ModelSerializer):
+    dispositivo_info = DispositivoIoTSerializer(source='dispositivo', read_only=True)
+    tecnico_responsable_info = UsuarioSerializer(source='tecnico_responsable', read_only=True)
+
     class Meta:
         model = Mantenimiento
-        fields = '__all__'
+        fields = [
+            'id', 'dispositivo', 'dispositivo_info', 'fecha_mantenimiento',
+            'tipo_mantenimiento', 'descripcion', 'duracion_horas',
+            'tecnico_responsable', 'tecnico_responsable_info',
+            'fecha_registro', 'ultima_actualizacion'
+        ]
+        read_only_fields = ['fecha_registro', 'ultima_actualizacion', 'dispositivo_info', 'tecnico_responsable_info']
 
-# --- Protocolo de Emergencia ---
+
 class ProtocoloEmergenciaSerializer(serializers.ModelSerializer):
+    zona_info = ZonaSerializer(source='zona', read_only=True)
+    sensores_info = SensorSerializer(source='sensores', many=True, read_only=True) # Muestra detalles de sensores
+    activadores_info = ActivadorSerializer(source='activadores', many=True, read_only=True) # Muestra detalles de activadores
+    creado_por_info = UsuarioSerializer(source='creado_por', read_only=True) # Muestra detalles del usuario
+
     class Meta:
         model = ProtocoloEmergencia
-        fields = '__all__'
+        fields = [
+            'id', 'nombre', 'zona', 'zona_info', 'sensores', 'sensores_info',
+            'activadores', 'activadores_info', 'descripcion', 'creado_por',
+            'creado_por_info', 'fecha_creacion'
+        ]
+        read_only_fields = ['fecha_creacion', 'zona_info', 'sensores_info', 'activadores_info', 'creado_por_info']
 
-# --- Log de Auditoría ---
+
+
+class MantenimientoSerializer(serializers.ModelSerializer):
+    # Campo para la SALIDA: muestra la información detallada del objeto relacionado
+    # 'target_object' será el nombre del campo en la salida JSON
+    target_object = serializers.SerializerMethodField()
+
+    # Campos para la ENTRADA (POST, PUT, PATCH):
+    # content_type_id: el ID del ContentType (ej. 1 para DispositivoIoT, 2 para Sensor)
+    content_type_id = serializers.PrimaryKeyRelatedField(
+        queryset=ContentType.objects.all(),
+        write_only=True,
+        required=True,
+        source='content_type' # Mapea al campo content_type del modelo
+    )
+    # object_id: el ID del objeto específico (ej. ID del DispositivoIoT)
+    object_id = serializers.IntegerField(
+        write_only=True,
+        required=True
+    )
+
+    # Campo para la SALIDA (GET requests): representa el username del técnico responsable (lectura)
+    tecnico_responsable_username = serializers.CharField(source='tecnico_responsable.username', read_only=True)
+
+    # Campo para la ENTRADA (POST, PUT, PATCH requests): espera el ID del técnico responsable
+    tecnico_responsable_id = serializers.PrimaryKeyRelatedField(
+        queryset=Usuario.objects.filter(rol__nombre='Técnico de Mantenimiento'),
+        source='tecnico_responsable',
+        write_only=True,
+        required=False,
+        allow_null=True
+    )
+
+    class Meta:
+        model = Mantenimiento
+        fields = [
+            'id',
+            'content_type_id',      # Para la entrada (ID del tipo de modelo)
+            'object_id',            # Para la entrada (ID del objeto específico)
+            'target_object',        # Para la salida (objeto relacionado detallado)
+            'fecha_mantenimiento',
+            'tipo_mantenimiento',
+            'descripcion',
+            'duracion_horas',
+            'tecnico_responsable_id',
+            'tecnico_responsable_username',
+            'fecha_registro',
+            'ultima_actualizacion',
+        ]
+        read_only_fields = ['fecha_registro', 'ultima_actualizacion', 'target_object']
+
+    def get_target_object(self, obj):
+        """
+        Retorna el serializer apropiado para el objeto relacionado.
+        """
+        if obj.content_object:
+            if isinstance(obj.content_object, DispositivoIoT):
+                return DispositivoIoTSerializer(obj.content_object).data
+            elif isinstance(obj.content_object, Sensor):
+                return SensorSerializer(obj.content_object).data
+            elif isinstance(obj.content_object, Activador):
+                return ActivadorSerializer(obj.content_object).data
+        return None
+
+
+class ContentTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ContentType
+        fields = '__all__'
 class LogAuditoriaSerializer(serializers.ModelSerializer):
     class Meta:
         model = LogAuditoria
         fields = '__all__'
+

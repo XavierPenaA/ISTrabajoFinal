@@ -1,0 +1,139 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Estadísticas y Datos</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-list>
+    <ion-item>
+      <ion-select
+        label="Zona"
+        label-placement="stacked"
+        placeholder="Seleccionar Zona"
+        [(ngModel)]="selectedZoneId"
+        (ionChange)="onZoneChange()"
+      >
+        <ion-select-option *ngFor="let zona of zonas" [value]="zona.id">
+          {{ zona.nombre }}
+        </ion-select-option>
+      </ion-select>
+    </ion-item>
+
+    <ion-item>
+      <ion-select
+        label="Dispositivo IoT"
+        label-placement="stacked"
+        placeholder="Seleccionar Dispositivo"
+        [(ngModel)]="selectedDeviceId"
+        (ionChange)="onDeviceChange()"
+        [disabled]="!selectedZoneId || dispositivos.length === 0"
+      >
+        <ion-select-option *ngFor="let dispositivo of dispositivos" [value]="dispositivo.id">
+          {{ dispositivo.tipo }} (ID: {{ dispositivo.id }})
+        </ion-select-option>
+      </ion-select>
+    </ion-item>
+
+    <ion-item>
+      <ion-select
+        label="Tipo de Medición"
+        label-placement="stacked"
+        placeholder="Seleccionar Tipo de Medición"
+        [(ngModel)]="selectedTipoMedicion"
+        (ionChange)="onTipoMedicionChange()"
+        [disabled]="!selectedDeviceId || tiposMedicion.length === 0"
+      >
+        <ion-select-option *ngFor="let tipo of tiposMedicion" [value]="tipo">
+          {{ tipo }}
+        </ion-select-option>
+      </ion-select>
+    </ion-item>
+
+    <ion-item>
+      <ion-select
+        label="Sensor"
+        label-placement="stacked"
+        placeholder="Seleccionar Sensor"
+        [(ngModel)]="selectedSensorId"
+        [disabled]="!selectedTipoMedicion || sensores.length === 0"
+      >
+        <ion-select-option *ngFor="let sensor of sensores" [value]="sensor.id">
+          {{ sensor.tipo_medicion }} (ID: {{ sensor.id }})
+        </ion-select-option>
+      </ion-select>
+    </ion-item>
+
+    <ion-item>
+      <ion-datetime-button datetime="full-date-datetime"></ion-datetime-button>
+      <ion-modal [keepContentsMounted]="true">
+        <ng-template>
+          <ion-datetime
+            id="full-date-datetime"
+            display-format="YYYY-MM-DD"
+            presentation="date"
+            [(ngModel)]="selectedDate"
+          ></ion-datetime>
+        </ng-template>
+      </ion-modal>
+    </ion-item>
+
+  </ion-list>
+
+  <ion-button expand="block" class="ion-margin-top" (click)="realizarConsulta()">
+    Realizar Consulta
+  </ion-button>
+
+  <ion-card *ngIf="medicionesResult.length > 0" class="ion-margin-top">
+    <ion-card-header>
+      <ion-card-title>Resultados de la Consulta</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-grid>
+        <ion-row>
+          <ion-col size="6">
+            <ion-text color="medium">Máximo</ion-text><br>
+            <ion-text color="dark"><h2>{{ maxMedicion | number:'1.2-2' }}</h2></ion-text>
+          </ion-col>
+          <ion-col size="6">
+            <ion-text color="medium">Mínimo</ion-text><br>
+            <ion-text color="dark"><h2>{{ minMedicion | number:'1.2-2' }}</h2></ion-text>
+          </ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col size="6">
+            <ion-text color="medium">Promedio</ion-text><br>
+            <ion-text color="dark"><h2>{{ avgMedicion | number:'1.2-2' }}</h2></ion-text>
+          </ion-col>
+          <ion-col size="6">
+            <ion-text color="medium">Desviación Estándar</ion-text><br>
+            <ion-text color="dark"><h2>{{ stdDevMedicion | number:'1.2-2' }}</h2></ion-text>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+
+      <div class="chart-container">
+        <canvas
+          baseChart
+          [data]="lineChartData"
+          [options]="lineChartOptions"
+          [type]="lineChartType"
+          (chartClick)="chartClicked($event)"
+          (chartHover)="chartHovered($event)"
+        ></canvas>
+      </div>
+
+      <ion-button expand="block" fill="outline" class="ion-margin-top" (click)="exportarDatos()">
+        Exportar Datos
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+
+  <div *ngIf="!medicionesResult.length && maxMedicion === null" class="ion-text-center ion-padding">
+    <p>Selecciona los filtros y haz clic en "Realizar Consulta" para ver las estadísticas.</p>
+  </div>
+
+</ion-content>

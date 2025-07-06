@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.contrib.contenttypes.fields import GenericForeignKey  # <--- ASEGÚRATE DE QUE ESTA LÍNEA ESTÉ AQUÍ
+from django.contrib.contenttypes.models import ContentType  
 
 # --- Roles disponibles en el sistema ---
 ROLES = [
@@ -9,10 +11,6 @@ ROLES = [
     ('ANALISTA', 'Analista de Datos'),
 ]
 
-TIPOS_MANTENIMIENTO = [
-    ('PREVENTIVO', 'Preventivo'),
-    ('CORRECTIVO', 'Correctivo'),
-]
 
 TIPOS_MEDICION = [
     ('CO2', 'CO₂'),
@@ -69,6 +67,13 @@ class DispositivoIoT(models.Model):
     latitud = models.FloatField()
     longitud = models.FloatField()
     activo = models.BooleanField(default=True)
+    # --- AÑADE ESTAS DOS LÍNEAS ---
+    fecha_registro = models.DateTimeField(auto_now_add=True) # Se establece una vez al crearse
+    ultima_actualizacion = models.DateTimeField(auto_now=True) # Se actualiza en cada guardado
+    # -----------------------------
+
+    def __str__(self):
+        return f"{self.tipo} ({self.id})" # O alguna representación útil para identificarlo
 
 # --- Sensores de un dispositivo ---
 class Sensor(models.Model):
@@ -91,15 +96,30 @@ class Medicion(models.Model):
     valor = models.FloatField()
     fecha = models.DateTimeField(auto_now_add=True)
 
-# --- Mantenimientos registrados ---
 class Mantenimiento(models.Model):
-    dispositivo = models.ForeignKey(DispositivoIoT, on_delete=models.CASCADE)
-    fecha = models.DateField()
-    tipo = models.CharField(max_length=20, choices=TIPOS_MANTENIMIENTO)
-    descripcion = models.TextField()
-    duracion_horas = models.FloatField()
-    tecnico = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True, limit_choices_to={'rol': 'TECNICO'})
+    # Elimina el campo 'dispositivo' existente
+    # dispositivo = models.ForeignKey(DispositivoIoT, on_delete=models.CASCADE, related_name='mantenimientos') # <--- ELIMINA O COMENTA ESTA LÍNEA
 
+    # --- AÑADE ESTOS CAMPOS PARA LA RELACIÓN GENÉRICA ---
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id') # Campo virtual para acceder al objeto
+    # ----------------------------------------------------
+
+    fecha_mantenimiento = models.DateField()
+    tipo_mantenimiento = models.CharField(max_length=100)
+    descripcion = models.TextField()
+    duracion_horas = models.DecimalField(max_digits=5, decimal_places=2)
+    tecnico_responsable = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True, blank=True, related_name='mantenimientos_asignados')
+    fecha_registro = models.DateTimeField(auto_now_add=True)
+    ultima_actualizacion = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        # Ahora puedes mostrar qué tipo de objeto se mantuvo
+        return f"Mantenimiento de {self.content_object} ({self.content_type.model}) el {self.fecha_mantenimiento}"
+
+    class Meta:
+        verbose_name_plural = "Mantenimientos"
 # --- Protocolos de emergencia ---
 class ProtocoloEmergencia(models.Model):
     nombre = models.CharField(max_length=100)
@@ -107,7 +127,8 @@ class ProtocoloEmergencia(models.Model):
     sensores = models.ManyToManyField(Sensor)
     activadores = models.ManyToManyField(Activador)
     descripcion = models.TextField()
-    creado_por = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True, limit_choices_to={'rol': 'SUPERVISOR'})
+    # CAMBIA ESTA LÍNEA
+    creado_por = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True, blank=True, related_name='protocolos_creados', limit_choices_to={'rol__nombre': 'Supervisor de Planta'})
     fecha_creacion = models.DateTimeField(auto_now_add=True)
 
 # --- Logs de auditoría ---
