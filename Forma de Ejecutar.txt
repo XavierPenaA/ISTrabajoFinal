@@ -18,3 +18,5 @@ npm install
 
 ionic serve
 El navegador se abrirá automáticamente en la dirección donde se ejecuta la aplicación, usualmente http://localhost:8100
+
+Para tener las interfaces gráficas como un dispositivo móvil (como en el documento) debe usar las herramientas para desarrollador o inspeccionar desde el navegador
