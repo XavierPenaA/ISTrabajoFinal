@@ -1,0 +1,20 @@
+1. Ejecución del Backend
+En la terminal en el directorio del Backend ejecutar el siguiente comando:
+
+pip install -r requirements.txt
+
+Una vez instaladas las dependencias con el comando anterior, iniciar el servidor de desarrollo de Django con el siguiente comando en la terminal:
+
+python manage.py runserver
+
+El backend se ejecutará por defecto en http://localhost:8000.
+
+2. Ejecución del Frontend (Aplicación Ionic/Angular)
+En el directorio del Frontend:
+
+Abrir una nueva terminal o línea de comandos (manteniendo la terminal del backend abierta) y dirigirse al directorio raíz del proyecto frontend, correr los siguientes comandos en la terminal:
+
+npm install
+
+ionic serve
+El navegador se abrirá automáticamente en la dirección donde se ejecuta la aplicación, usualmente http://localhost:8100
