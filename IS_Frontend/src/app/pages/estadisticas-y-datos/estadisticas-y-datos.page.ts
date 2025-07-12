@@ -20,10 +20,7 @@ import { BaseChartDirective } from 'ng2-charts';
 // ¡Mantenemos esta importación! Es crucial.
 import 'chartjs-adapter-date-fns';
 
-// --- NUEVO: Registra los componentes de Chart.js al inicio ---
-// Es buena práctica asegurarse de que los componentes necesarios (incluidas las escalas)
-// estén registrados antes de que Chart.js intente usarlos.
-// registerables incluye todas las escalas, elementos, etc. por defecto.
+
 Chart.register(...registerables);
 
 
