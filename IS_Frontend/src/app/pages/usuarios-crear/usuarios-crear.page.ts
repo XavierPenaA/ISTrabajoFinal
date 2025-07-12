@@ -9,10 +9,10 @@ import { Router } from '@angular/router';
   selector: 'app-usuarios-crear',
   templateUrl: './usuarios-crear.page.html',
   styleUrls: ['./usuarios-crear.page.scss'],
-  standalone: true, // Indica que este componente es standalone (no necesita un NgModule separado para sí mismo)
+  standalone: true,
   imports: [
     IonicModule,    // Módulo para componentes Ionic
-    CommonModule,   // Módulo para directivas comunes de Angular como *ngFor, *ngIf
+    CommonModule,
     FormsModule     // Módulo para ngModel y formularios basados en plantillas
   ]
 })

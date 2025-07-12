@@ -47,10 +47,9 @@ class Rol(models.Model):
 # --- Modifica tu modelo Usuario para que apunte a este nuevo modelo Rol ---
 class Usuario(AbstractUser):
     telefono = models.CharField(max_length=20, blank=True)
-    # Ahora 'rol' es una ForeignKey al modelo Rol
+    # 'rol' es una ForeignKey al modelo Rol
     rol = models.ForeignKey(Rol, on_delete=models.SET_NULL, null=True, blank=True, related_name='usuarios')
 
-# ... el resto de tus modelos
 
 # --- Zonas dentro de la planta ---
 class Zona(models.Model):
@@ -67,13 +66,11 @@ class DispositivoIoT(models.Model):
     latitud = models.FloatField()
     longitud = models.FloatField()
     activo = models.BooleanField(default=True)
-    # --- AÑADE ESTAS DOS LÍNEAS ---
     fecha_registro = models.DateTimeField(auto_now_add=True) # Se establece una vez al crearse
     ultima_actualizacion = models.DateTimeField(auto_now=True) # Se actualiza en cada guardado
-    # -----------------------------
 
     def __str__(self):
-        return f"{self.tipo} ({self.id})" # O alguna representación útil para identificarlo
+        return f"{self.tipo} ({self.id})" 
 
 # --- Sensores de un dispositivo ---
 class Sensor(models.Model):
@@ -97,14 +94,9 @@ class Medicion(models.Model):
     fecha = models.DateTimeField(auto_now_add=True)
 
 class Mantenimiento(models.Model):
-    # Elimina el campo 'dispositivo' existente
-    # dispositivo = models.ForeignKey(DispositivoIoT, on_delete=models.CASCADE, related_name='mantenimientos') # <--- ELIMINA O COMENTA ESTA LÍNEA
-
-    # --- AÑADE ESTOS CAMPOS PARA LA RELACIÓN GENÉRICA ---
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey('content_type', 'object_id') # Campo virtual para acceder al objeto
-    # ----------------------------------------------------
 
     fecha_mantenimiento = models.DateField()
     tipo_mantenimiento = models.CharField(max_length=100)
@@ -115,7 +107,6 @@ class Mantenimiento(models.Model):
     ultima_actualizacion = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        # Ahora puedes mostrar qué tipo de objeto se mantuvo
         return f"Mantenimiento de {self.content_object} ({self.content_type.model}) el {self.fecha_mantenimiento}"
 
     class Meta:
@@ -127,7 +118,6 @@ class ProtocoloEmergencia(models.Model):
     sensores = models.ManyToManyField(Sensor)
     activadores = models.ManyToManyField(Activador)
     descripcion = models.TextField()
-    # CAMBIA ESTA LÍNEA
     creado_por = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True, blank=True, related_name='protocolos_creados', limit_choices_to={'rol__nombre': 'Supervisor de Planta'})
     fecha_creacion = models.DateTimeField(auto_now_add=True)
 

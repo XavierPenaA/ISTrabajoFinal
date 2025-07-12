@@ -26,7 +26,7 @@ export class SelectZonePage implements OnInit {
 
   constructor(
     private zonaService: ZonaService,
-    public navCtrl: NavController, // <--- ¡CAMBIA 'private' a 'public' AQUÍ!
+    public navCtrl: NavController,
     private toastController: ToastController,
     private protocolDataService: ProtocolDataService
   ) { }

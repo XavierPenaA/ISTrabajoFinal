@@ -10,11 +10,11 @@ import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 import { HttpClientModule } from '@angular/common/http';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common'; // ¡Asegúrate de que CommonModule esté aquí!
-import { RouterModule } from '@angular/router'; // ¡Asegúrate de que RouterModule esté aquí!
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 
 @NgModule({
-  declarations: [AppComponent], // AppComponent declarado aquí
+  declarations: [AppComponent],
   imports: [
     BrowserModule,
     IonicModule.forRoot(),
@@ -22,10 +22,10 @@ import { RouterModule } from '@angular/router'; // ¡Asegúrate de que RouterMod
     HttpClientModule,
     FormsModule,
     ReactiveFormsModule,
-    CommonModule, // Necesario para *ngFor, *ngIf en tus plantillas HTML
-    RouterModule // Necesario para routerLink en tus plantillas HTML
+    CommonModule,
+    RouterModule
   ],
   providers: [{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy }],
-  bootstrap: [AppComponent], // AppComponent es el componente de arranque
+  bootstrap: [AppComponent],
 })
 export class AppModule {}

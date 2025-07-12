@@ -18,7 +18,6 @@ export class RegistrarMantenimientoPage implements OnInit {
   @ViewChild('mantenimientoForm') mantenimientoForm!: NgForm;
 
   mantenimiento: any = {
-    // MODIFICACIÓN: Inicializa fecha_mantenimiento con la fecha actual
     fecha_mantenimiento: new Date().toISOString(),
     tipo_mantenimiento: '',
     descripcion: '',
@@ -118,7 +117,6 @@ export class RegistrarMantenimientoPage implements OnInit {
       return;
     }
 
-    // --- VALIDACIÓN DE FECHA: IMPIDE EL REGISTRO SI ES UNA FECHA ANTERIOR ---
     if (this.mantenimiento.fecha_mantenimiento) {
       const selectedDate = new Date(this.mantenimiento.fecha_mantenimiento);
       const today = new Date();
@@ -130,8 +128,6 @@ export class RegistrarMantenimientoPage implements OnInit {
         return; // Detener el proceso de registro si la fecha es inválida
       }
     }
-    // -----------------------------------------------------------------------
-
     const dataToSend = { ...this.mantenimiento };
 
     // Corrección de formato de fecha para el backend (si es necesario un formato específico)

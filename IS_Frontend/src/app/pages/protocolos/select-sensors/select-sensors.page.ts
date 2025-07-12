@@ -55,7 +55,6 @@ export class SelectSensorsPage implements OnInit {
     // Preseleccionar sensores si ya existen en el borrador para los dispositivos actuales
     const currentDraftSensorIds = this.protocolDataService.getProtocolDraft().sensorIds;
     // Solo preseleccionar los sensores que pertenecen a los deviceIds actuales
-    // (Esto es más complejo y quizás lo quieras simplificar, pero es la versión "correcta")
     this.selectedSensorIds = currentDraftSensorIds.filter(id =>
       this.sensors.some(sensor => sensor.id === id && this.deviceIds.includes(sensor.dispositivo))
     );
@@ -65,7 +64,7 @@ export class SelectSensorsPage implements OnInit {
 
   loadSensors(deviceIds: number[]) {
     this.isLoading = true;
-    this.sensorService.getSensorsByDevices(deviceIds).pipe( // Necesitas este método en tu servicio de sensores
+    this.sensorService.getSensorsByDevices(deviceIds).pipe(
       finalize(() => this.isLoading = false)
     ).subscribe({
       next: (data) => {
@@ -99,8 +98,6 @@ export class SelectSensorsPage implements OnInit {
   }
 
   confirmSelection() {
-    // No es obligatorio seleccionar sensores, pero si se seleccionan, los guardamos
-    // Si la selección de sensores es obligatoria, añade un 'if (this.selectedSensorIds.length === 0)'
     this.protocolDataService.updateProtocolDraft({ sensorIds: this.selectedSensorIds });
     this.presentToast('Sensores seleccionados: ' + (this.selectedSensorIds.length > 0 ? this.selectedSensorIds.join(', ') : 'Ninguno'), 'success');
     this.navCtrl.navigateBack('/protocolos');

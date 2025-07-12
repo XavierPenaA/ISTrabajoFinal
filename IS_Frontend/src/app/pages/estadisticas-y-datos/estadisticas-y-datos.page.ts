@@ -13,11 +13,8 @@ import { DispositivoIoT } from '../../models/dispositivo-iot.model';
 import { Sensor } from '../../models/sensor.model';
 import { Medicion } from '../../models/medicion.model';
 
-// --- Importaciones para Gráficos ---
 import { Chart, ChartConfiguration, ChartData, ChartEvent, ChartType, registerables } from 'chart.js'; // Importa 'Chart' y 'registerables'
 import { BaseChartDirective } from 'ng2-charts';
-
-// ¡Mantenemos esta importación! Es crucial.
 import 'chartjs-adapter-date-fns';
 
 
@@ -88,9 +85,9 @@ export class EstadisticasYDatosPage implements OnInit {
     },
     scales: {
       x: {
-        type: 'time', // <-- Aquí es donde se usa la escala 'time'
+        type: 'time',
         time: {
-          unit: 'hour', // or 'day', 'minute' depending on data density
+          unit: 'hour',
           displayFormats: {
             hour: 'MMM dd, HH:mm',
             day: 'MMM dd'

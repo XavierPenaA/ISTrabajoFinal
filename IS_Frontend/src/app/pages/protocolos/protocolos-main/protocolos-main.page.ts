@@ -15,7 +15,7 @@ import { Sensor } from '../../../models/sensor.model';
 import { Activador } from '../../../models/activador.model';
 import { forkJoin, of, Subject } from 'rxjs';
 import { switchMap, takeUntil } from 'rxjs/operators';
-import { HttpErrorResponse } from '@angular/common/http'; // <-- ¡IMPORTA ESTO!
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-protocolos-main',
@@ -73,10 +73,6 @@ export class ProtocolosMainPage implements OnInit, OnDestroy {
       ? this.zonaService.getZonaById(this.protocolDraft.zoneId)
       : of(null);
 
-    // Si getDispositivosByZone está esperando un solo ID de zona, pero quieres cargar dispositivos seleccionados
-    // deberías usar getDispositivoIoTById para cada ID en deviceIds.
-    // Asumo que getDispositivosByZone aún filtra por zona. Si seleccionaste múltiples dispositivos de diferentes zonas,
-    // esta lógica puede necesitar un ajuste.
     const devicesObs = this.protocolDraft.deviceIds.length > 0
       ? forkJoin(this.protocolDraft.deviceIds.map(id => this.dispositivoService.getDispositivoIoTById(id)))
       : of([]);
@@ -176,7 +172,7 @@ export class ProtocolosMainPage implements OnInit, OnDestroy {
               this.presentToast('Protocolo creado exitosamente.', 'success');
               this.protocolDataService.resetProtocolDraft();
               this.navCtrl.navigateRoot('/protocolos');
-            } catch (error: any) { // <-- ¡Aquí tipamos 'error' como 'any' para simplicidad, o HttpErrorResponse si quieres más estricto!
+            } catch (error: any) {
               console.error('Error al crear protocolo:', error);
               // Mejor manejo de errores de la API
               let errorMessage = 'Error desconocido al crear el protocolo.';

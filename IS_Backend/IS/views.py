@@ -20,33 +20,28 @@ class UsuarioViewSet(viewsets.ModelViewSet):
     queryset = Usuario.objects.all()
     serializer_class = UsuarioSerializer
 
-     # --- NUEVAS LÍNEAS PARA FILTRADO ---
     filter_backends = [DjangoFilterBackend]
-    # Puedes filtrar por el ID del rol ('rol') o por el nombre del rol ('rol__nombre')
-    filterset_fields = ['rol', 'rol__nombre', 'username', 'email'] # Añade los campos que quieras filtrar
-
-class ZonaViewSet(viewsets.ModelViewSet): # O ZonaListView si lo manejas con generics.ListAPIView
+    filterset_fields = ['rol', 'rol__nombre', 'username', 'email'] 
+class ZonaViewSet(viewsets.ModelViewSet): 
     queryset = Zona.objects.all()
     serializer_class = ZonaSerializer
 
 class DispositivoIoTViewSet(viewsets.ModelViewSet):
     queryset = DispositivoIoT.objects.all()
     serializer_class = DispositivoIoTSerializer
-    filter_backends = [DjangoFilterBackend] # <-- AÑADE ESTA LÍNEA
-    filterset_fields = ['zona'] # <-- AÑADE ESTA LÍNEA: Permite filtrar por /api/dispositivos/?zona=<id_zona>
+    filter_backends = [DjangoFilterBackend] 
+    filterset_fields = ['zona']
 
 class SensorViewSet(viewsets.ModelViewSet):
     queryset = Sensor.objects.all()
     serializer_class = SensorSerializer
-    filter_backends = [DjangoFilterBackend] # <-- AÑADE ESTA LÍNEA
-    filterset_fields = ['dispositivo'] # <-- AÑADE ESTA LÍNEA: Permite filtrar por /api/sensores/?dispositivo=<id_dispositivo>
-
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['dispositivo'] 
 class ActivadorViewSet(viewsets.ModelViewSet):
     queryset = Activador.objects.all()
     serializer_class = ActivadorSerializer
-    filter_backends = [DjangoFilterBackend] # <-- AÑADE ESTA LÍNEA
-    filterset_fields = ['dispositivo'] # <-- AÑADE ESTA LÍNEA: Permite filtrar por /api/activadores/?dispositivo=<id_dispositivo>
-
+    filter_backends = [DjangoFilterBackend] 
+    filterset_fields = ['dispositivo'] 
 class ProtocoloEmergenciaViewSet(viewsets.ModelViewSet):
     queryset = ProtocoloEmergencia.objects.all()
     serializer_class = ProtocoloEmergenciaSerializer
@@ -69,8 +64,7 @@ class MedicionViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_class = MedicionFilter
 
-    # CORRECTED LINE: 'detail=False' IS REQUIRED
-    @action(detail=False, methods=['get'], url_path='tipos-medicion') # <--- Corrected: 'detail=False' is back
+    @action(detail=False, methods=['get'], url_path='tipos-medicion')
     def get_tipos_medicion(self, request):
         tipos = Sensor.objects.values_list('tipo_medicion', flat=True).distinct()
         return Response(list(tipos))
@@ -89,7 +83,6 @@ class RolViewSet(viewsets.ModelViewSet):
 class ContentTypeViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = ContentType.objects.all()
     serializer_class = ContentTypeSerializer
-    # Si quieres filtrar por nombre de modelo:
     def get_queryset(self):
         queryset = super().get_queryset()
         model_name = self.request.query_params.get('model', None)

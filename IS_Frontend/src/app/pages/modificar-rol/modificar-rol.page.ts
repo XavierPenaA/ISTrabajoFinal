@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UsuarioService } from '../../services/usuario.service';
 import { CommonModule } from '@angular/common';
-import { IonicModule, ToastController } from '@ionic/angular'; // Asegúrate de importar ToastController
+import { IonicModule, ToastController } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
 
 @Component({
@@ -25,7 +25,7 @@ export class ModificarRolPage implements OnInit {
     private activatedRoute: ActivatedRoute,
     private usuarioService: UsuarioService,
     private router: Router,
-    private toastController: ToastController // Inyectado aquí
+    private toastController: ToastController
   ) { }
 
   ngOnInit() {
@@ -47,7 +47,7 @@ export class ModificarRolPage implements OnInit {
       this.rolesDisponibles = data;
     }, error => {
       console.error('Error al cargar roles disponibles:', error);
-      this.presentToast('Error al cargar opciones de rol.', 'danger'); // Mensaje de error usa el toast básico
+      this.presentToast('Error al cargar opciones de rol.', 'danger');
     });
   }
 
@@ -57,15 +57,10 @@ export class ModificarRolPage implements OnInit {
         this.usuario = data;
         if (this.usuario.rol && this.usuario.rol.id) {
           this.selectedRolId = this.usuario.rol.id;
-          // Asegúrate de que rolesDisponibles ya esté cargado antes de buscar
           if (this.rolesDisponibles.length > 0) {
             this.currentSelectedRol = this.rolesDisponibles.find(r => r.id === this.selectedRolId) || {};
             this.updatePermissionsDisplay();
           } else {
-            // Si los roles aún no se han cargado, espera y luego actualiza
-            // Esto podría manejarse con un Promise.all o similar si fuera más complejo
-            // pero para este caso simple, confiar en que loadRoles ya ha iniciado la carga es suficiente.
-            // Opcional: una pequeña espera o un refetch si es crucial para la UX
             this.usuarioService.getRoles().subscribe(rolesData => {
               this.rolesDisponibles = rolesData;
               this.currentSelectedRol = this.rolesDisponibles.find(r => r.id === this.selectedRolId) || {};

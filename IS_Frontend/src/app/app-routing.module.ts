@@ -6,7 +6,6 @@ import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 const routes: Routes = [
   {
     path: 'home',
-    // Si tu HomePageModule es tradicional, déjalo así
     loadChildren: () => import('./home/home.module').then( m => m.HomePageModule)
   },
   {
@@ -60,9 +59,7 @@ const routes: Routes = [
   },
   {
     path: 'estadisticas-y-datos',
-    // Si esta página es standalone, usa loadComponent
     loadComponent: () => import('./pages/estadisticas-y-datos/estadisticas-y-datos.page').then( m => m.EstadisticasYDatosPage)
-    // Si no es standalone, usa loadChildren: () => import('./pages/estadisticas-y-datos/estadisticas-y-datos.module').then( m => m.EstadisticasYDatosPageModule)
   },
 ];
 

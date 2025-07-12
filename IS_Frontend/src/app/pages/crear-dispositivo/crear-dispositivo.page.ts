@@ -18,10 +18,6 @@ export class CrearDispositivoPage implements OnInit {
 isNaN(arg0: any): any {
 throw new Error('Method not implemented.');
 }
-  // NOTA: isNaN(arg0: any): boolean { throw new Error('Method not implemented.'); }
-  // Esta línea no debería estar aquí en el componente. Es un error de sintaxis.
-  // Elimínala de tu archivo si la tienes.
-
   @ViewChild('dispositivoForm') dispositivoForm!: NgForm;
 
   dispositivo: any = {
@@ -127,8 +123,8 @@ throw new Error('Method not implemented.');
         sensores: this.sensores.map(s => ({
             tipo_medicion: s.tipo_medicion,
             unidad: s.unidad,
-            umbral_min: parseFloat(s.umbral_min), // Asegúrate de enviar como número
-            umbral_max: parseFloat(s.umbral_max), // Asegúrate de enviar como número
+            umbral_min: parseFloat(s.umbral_min),
+            umbral_max: parseFloat(s.umbral_max),
             activo: s.activo
         })),
         activadores: this.activadores.map(a => ({
@@ -148,7 +144,6 @@ throw new Error('Method not implemented.');
           if (error.error && typeof error.error === 'object') {
             for (const key in error.error) {
               if (error.error.hasOwnProperty(key)) {
-                // Si el error es un array (ej. de una lista anidada), únete
                 if (Array.isArray(error.error[key])) {
                     errorMessage += `\n${key}: ${error.error[key].join(', ')}`;
                 } else {
